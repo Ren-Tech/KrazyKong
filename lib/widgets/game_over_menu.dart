@@ -12,7 +12,7 @@ import '/game/audio_manager.dart';
 // This represents the game over overlay,
 // displayed with dino runs out of lives.
 class GameOverMenu extends StatelessWidget {
-  // An unique identified for this overlay.
+  // An unique identifier for this overlay.
   static const id = 'GameOverMenu';
 
   // Reference to parent game.
@@ -49,15 +49,16 @@ class GameOverMenu extends StatelessWidget {
                       selector: (_, playerData) => playerData.currentScore,
                       builder: (_, score, __) {
                         return Text(
-                          'You Score: $score',
+                          'Your Score: $score',
                           style: const TextStyle(
                               fontSize: 40, color: Colors.white),
                         );
                       },
                     ),
+                    // Play Again Button
                     ElevatedButton(
                       child: const Text(
-                        'Restart',
+                        'Play Again',
                         style: TextStyle(
                           fontSize: 30,
                         ),
@@ -71,6 +72,25 @@ class GameOverMenu extends StatelessWidget {
                         AudioManager.instance.resumeBgm();
                       },
                     ),
+                    // Next Game Button
+                    ElevatedButton(
+                      child: const Text(
+                        'Next Game',
+                        style: TextStyle(
+                          fontSize: 30,
+                        ),
+                      ),
+                      onPressed: () {
+                        // Implement logic for loading the next game or level
+                        game.overlays.remove(GameOverMenu.id);
+                        game.overlays.add(Hud
+                            .id); // Change to next game overlay if applicable
+                        game.resumeEngine();
+                        game.reset(); // Or set up new level/game state here
+                        AudioManager.instance.resumeBgm();
+                      },
+                    ),
+                    // Exit Button (optional)
                     ElevatedButton(
                       child: const Text(
                         'Exit',

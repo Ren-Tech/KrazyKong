@@ -6,8 +6,8 @@ import '/game/enemy.dart';
 import '/game/dino_run.dart';
 import '/models/enemy_data.dart';
 
-// This class is responsible for spawning random enemies at certain
-// interval of time depending upon players current score.
+/// This class is responsible for spawning random enemies at certain
+/// intervals of time depending upon the player's current score.
 class EnemyManager extends Component with HasGameReference<DinoRun> {
   // A list to hold data for all the enemies.
   final List<EnemyData> _data = [];
@@ -15,21 +15,33 @@ class EnemyManager extends Component with HasGameReference<DinoRun> {
   // Random generator required for randomly selecting enemy type.
   final Random _random = Random();
 
-  // Timer to decide when to spawn next enemy.
+  // Timer to decide when to spawn the next enemy.
   final Timer _timer = Timer(2, repeat: true);
+
+  // Speed multiplier for enemies.
+  double _speedMultiplier = 1.0;
 
   EnemyManager() {
     _timer.onTick = spawnRandomEnemy;
   }
 
-  // This method is responsible for spawning a random enemy.
+  /// Sets the speed multiplier for all enemies.
+  void setEnemySpeedMultiplier(double multiplier) {
+    _speedMultiplier = multiplier;
+    final enemies = game.world.children.whereType<Enemy>();
+    for (var enemy in enemies) {
+      enemy.speedX *= _speedMultiplier;
+    }
+  }
+
+  /// This method is responsible for spawning a random enemy.
   void spawnRandomEnemy() {
-    /// Generate a random index within [_data] and get an [EnemyData].
+    // Generate a random index within [_data] and get an [EnemyData].
     final randomIndex = _random.nextInt(_data.length);
     final enemyData = _data.elementAt(randomIndex);
     final enemy = Enemy(enemyData);
 
-    // Help in setting all enemies on ground.
+    // Help in setting all enemies on the ground.
     enemy.anchor = Anchor.bottomLeft;
     enemy.position = Vector2(
       game.virtualSize.x + 32,
@@ -45,18 +57,23 @@ class EnemyManager extends Component with HasGameReference<DinoRun> {
     // Due to the size of our viewport, we can
     // use textureSize as size for the components.
     enemy.size = enemyData.textureSize;
+
+    // Adjust speed based on the multiplier.
+    enemy.speedX = enemyData.speedX * _speedMultiplier;
+
     game.world.add(enemy);
   }
 
   @override
   void onMount() {
+    // Avoid mounting if already mounted.
     if (isMounted) {
       removeFromParent();
     }
 
-    // Don't fill list again and again on every mount.
+    // Don't fill the list again on every mount.
     if (_data.isEmpty) {
-      // As soon as this component is mounted, initilize all the data.
+      // Initialize all the data on the first mount.
       _data.addAll([
         EnemyData(
           image: game.images.fromCache('AngryPig/Walk (36x30).png'),
@@ -94,6 +111,7 @@ class EnemyManager extends Component with HasGameReference<DinoRun> {
     super.update(dt);
   }
 
+  /// Removes all enemies from the game world.
   void removeAllEnemies() {
     final enemies = game.world.children.whereType<Enemy>();
     for (var enemy in enemies) {

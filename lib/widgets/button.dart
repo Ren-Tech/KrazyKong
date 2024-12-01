@@ -86,8 +86,25 @@ class Hud extends StatelessWidget {
             // Controls for forward, back, and jump actions
             Positioned(
               left: 20,
+              bottom: 50,
+              child: Column(
+                children: [
+                  // Jump button
+                  RawMaterialButton(
+                    onPressed: game.jump, // Call the correct method name
+                    shape: CircleBorder(),
+                    fillColor: Colors.blue,
+                    padding: const EdgeInsets.all(20),
+                    child: const Icon(Icons.arrow_upward,
+                        size: 40, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              left: 20,
               bottom: 120,
-              child: Row(
+              child: Column(
                 children: [
                   // Move backward button
                   RawMaterialButton(
@@ -99,33 +116,21 @@ class Hud extends StatelessWidget {
                     child: const Icon(Icons.arrow_left,
                         size: 40, color: Colors.white),
                   ),
-                  const SizedBox(height: 10),
-                  // Move forward button, placed right next to back button
+                ],
+              ),
+            ),
+            Positioned(
+              right: 20,
+              bottom: 120,
+              child: Column(
+                children: [
+                  // Move forward button
                   RawMaterialButton(
                     onPressed: game.moveForward, // Call the correct method name
                     shape: CircleBorder(),
                     fillColor: Colors.blue,
                     padding: const EdgeInsets.all(20),
                     child: const Icon(Icons.arrow_right,
-                        size: 40, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-
-            // Move the jump button to the right side
-            Positioned(
-              right: 20,
-              bottom: 120,
-              child: Column(
-                children: [
-                  // Jump button
-                  RawMaterialButton(
-                    onPressed: game.jump, // Call the correct method name
-                    shape: CircleBorder(),
-                    fillColor: Colors.blue,
-                    padding: const EdgeInsets.all(20),
-                    child: const Icon(Icons.arrow_upward,
                         size: 40, color: Colors.white),
                   ),
                 ],

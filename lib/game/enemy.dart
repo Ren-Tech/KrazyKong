@@ -10,7 +10,10 @@ class Enemy extends SpriteAnimationComponent
   // The data required for creation of this enemy.
   final EnemyData enemyData;
 
-  Enemy(this.enemyData) {
+  // Current speed of the enemy, initialized from enemyData.
+  double speedX;
+
+  Enemy(this.enemyData) : speedX = enemyData.speedX {
     animation = SpriteAnimation.fromFrameData(
       enemyData.image,
       SpriteAnimationData.sequenced(
@@ -40,7 +43,8 @@ class Enemy extends SpriteAnimationComponent
 
   @override
   void update(double dt) {
-    position.x -= enemyData.speedX * dt;
+    // Use the current speed to move the enemy.
+    position.x -= speedX * dt;
 
     // Remove the enemy and increase player score
     // by 1, if enemy has gone past left end of the screen.
@@ -50,5 +54,10 @@ class Enemy extends SpriteAnimationComponent
     }
 
     super.update(dt);
+  }
+
+  // Optional: Add a setter for speedX if you want external control.
+  void setSpeed(double newSpeed) {
+    speedX = newSpeed;
   }
 }

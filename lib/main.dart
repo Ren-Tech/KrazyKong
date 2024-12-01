@@ -13,22 +13,17 @@ import 'models/player_data.dart';
 import 'widgets/pause_menu.dart';
 import 'widgets/settings_menu.dart';
 import 'widgets/game_over_menu.dart';
+import 'widgets/level_completed_menu.dart';
 
 Future<void> main() async {
-  // Ensures that all bindings are initialized
-  // before was start calling hive and flame code
-  // dealing with platform channels.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initializes hive and register the adapters.
+  // Initializes hive and registers adapters.
   await initHive();
   runApp(const DinoRunApp());
 }
 
-// This function will initilize hive with apps documents directory.
-// Additionally it will also register all the hive adapters.
 Future<void> initHive() async {
-  // For web hive does not need to be initialized.
   if (!kIsWeb) {
     final dir = await getApplicationDocumentsDirectory();
     Hive.init(dir.path);
@@ -38,7 +33,6 @@ Future<void> initHive() async {
   Hive.registerAdapter<Settings>(SettingsAdapter());
 }
 
-// The main widget for this game.
 class DinoRunApp extends StatelessWidget {
   const DinoRunApp({super.key});
 
@@ -51,7 +45,6 @@ class DinoRunApp extends StatelessWidget {
         fontFamily: 'Audiowide',
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        // Settings up some default theme for elevated buttons.
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -59,32 +52,200 @@ class DinoRunApp extends StatelessWidget {
           ),
         ),
       ),
-      home: Scaffold(
-        body: GameWidget<DinoRun>.controlled(
-          // This will dislpay a loading bar until [DinoRun] completes
-          // its onLoad method.
-          loadingBuilder: (conetxt) => const Center(
-            child: SizedBox(
-              width: 200,
-              child: LinearProgressIndicator(),
-            ),
+      home: const MainScreen(),
+    );
+  }
+}
+
+class MainScreen extends StatelessWidget {
+  const MainScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Dino Run - Maps")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          // Wrapping the entire Column in a scroll view.
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: List.generate(5, (index) {
+              return MapCard(index: index);
+            }),
           ),
-          // Register all the overlays that will be used by this game.
-          overlayBuilderMap: {
-            MainMenu.id: (_, game) => MainMenu(game),
-            PauseMenu.id: (_, game) => PauseMenu(game),
-            Hud.id: (_, game) => Hud(game),
-            GameOverMenu.id: (_, game) => GameOverMenu(game),
-            SettingsMenu.id: (_, game) => SettingsMenu(game),
-          },
-          // By default MainMenu overlay will be active.
-          initialActiveOverlays: const [MainMenu.id],
-          gameFactory: () => DinoRun(
-            // Use a fixed resolution camera to avoid manually
-            // scaling and handling different screen sizes.
-            camera: CameraComponent.withFixedResolution(
-              width: 360,
-              height: 180,
+        ),
+      ),
+    );
+  }
+}
+
+class MapCard extends StatefulWidget {
+  final int index;
+
+  const MapCard({Key? key, required this.index}) : super(key: key);
+
+  @override
+  _MapCardState createState() => _MapCardState();
+}
+
+class _MapCardState extends State<MapCard> {
+  late ScrollController _scrollController;
+  double _scrollOffset = 0.0;
+
+  // List of parallax backgrounds for each card. Each card has 6 layers now.
+  final List<List<String>> parallaxBackgrounds = [
+    [
+      'assets/images/parallax/plx-1.png',
+      'assets/images/parallax/plx-2.png',
+      'assets/images/parallax/plx-3.png',
+      'assets/images/parallax/plx-4.png',
+      'assets/images/parallax/plx-5.png',
+      'assets/images/parallax/plx-6.png'
+    ],
+    [
+      'assets/images/parallax/plx-7.png',
+      'assets/images/parallax/plx-8.png',
+      'assets/images/parallax/plx-9.png',
+      'assets/images/parallax/plx-10.png',
+      'assets/images/parallax/plx-11.png',
+      'assets/images/parallax/plx-12.png'
+    ],
+    [
+      'assets/images/parallax/plx-13.png',
+      'assets/images/parallax/plx-14.png',
+      'assets/images/parallax/plx-15.png',
+      'assets/images/parallax/plx-16.png',
+      'assets/images/parallax/plx-17.png',
+      'assets/images/parallax/plx-18.png'
+    ],
+    [
+      'assets/images/parallax/plx-19.png',
+      'assets/images/parallax/plx-20.png',
+      'assets/images/parallax/plx-21.png',
+      'assets/images/parallax/plx-22.png',
+      'assets/images/parallax/plx-23.png',
+      'assets/images/parallax/plx-24.png'
+    ],
+    [
+      'assets/images/parallax/plx-25.png',
+      'assets/images/parallax/plx-26.png',
+      'assets/images/parallax/plx-27.png',
+      'assets/images/parallax/plx-28.png',
+      'assets/images/parallax/plx-29.png',
+      'assets/images/parallax/plx-30.png'
+    ],
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()
+      ..addListener(() {
+        setState(() {
+          _scrollOffset = _scrollController.offset;
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Get the 6 parallax layers for the current card
+    List<String> currentBackgrounds = parallaxBackgrounds[widget.index];
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 4,
+      child: InkWell(
+        onTap: () {
+          // Navigate to DinoRun when the map is clicked
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GameWidget<DinoRun>.controlled(
+                loadingBuilder: (context) => const Center(
+                  child: SizedBox(
+                    width: 200,
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
+                overlayBuilderMap: {
+                  MainMenu.id: (_, game) => MainMenu(game),
+                  PauseMenu.id: (_, game) => PauseMenu(game),
+                  Hud.id: (_, game) => Hud(game),
+                  GameOverMenu.id: (_, game) => GameOverMenu(game),
+                  SettingsMenu.id: (_, game) => SettingsMenu(game),
+                  LevelCompletedMenu.id: (_, game) => LevelCompletedMenu(game),
+                },
+                initialActiveOverlays: const [MainMenu.id],
+                gameFactory: () => DinoRun(
+                  camera: CameraComponent.withFixedResolution(
+                    width: 360,
+                    height: 180,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          scrollDirection: Axis.horizontal,
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            // Ensure the child is constrained within screen width.
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context)
+                  .size
+                  .width, // Don't exceed screen width
+            ),
+            child: SizedBox(
+              height: 150,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Use 6 parallax layers for each card
+                  for (int layer = 0;
+                      layer < currentBackgrounds.length;
+                      layer++)
+                    Positioned(
+                      left: -_scrollOffset *
+                          (0.05 * (layer + 1)), // Varying scroll speeds
+                      right: 0,
+                      child: Image.asset(
+                        currentBackgrounds[
+                            layer], // Use the respective background for the layer
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+
+                  // Text overlay
+                  Center(
+                    child: Text(
+                      'Map ${widget.index + 1}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10.0,
+                            color: Colors.black,
+                            offset: Offset(2.0, 2.0),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
